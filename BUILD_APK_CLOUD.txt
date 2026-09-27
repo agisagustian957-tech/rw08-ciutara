@@ -1,0 +1,14 @@
+CLOUD BUILD VIA GITHUB ACTIONS
+
+1. Buat repository GitHub baru, misalnya RW08-Kampung-Ciutara.
+2. Upload seluruh isi folder project ini (bukan ZIP di dalam repository).
+3. Pastikan branch bernama main.
+4. Buka tab Actions.
+5. Pilih workflow "Build RW08 APK".
+6. Tekan Run workflow.
+7. Tunggu sampai selesai.
+8. Buka hasil run -> Artifacts -> RW08-Ciutara.
+9. Download ZIP artifact, ekstrak, lalu ambil app-debug.apk.
+10. Rename menjadi RW08-Ciutara.apk jika diinginkan.
+
+Catatan: ini menghasilkan debug APK untuk instalasi/testing. Untuk Play Store nanti perlu release signing dan AAB.

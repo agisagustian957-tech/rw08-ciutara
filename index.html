@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>RW 08 Ciutara</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:#eef5fb;color:#17324d}
+.app{max-width:960px;margin:auto;background:#fff;min-height:100vh}
+header{background:linear-gradient(135deg,#0878d1,#0753a4);color:#fff;padding:16px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:5}
+.logo{width:56px;height:56px;border-radius:16px;background:#fff;color:#0753a4;display:grid;place-items:center;font-weight:900;text-align:center}
+h1{font-size:20px;margin:0}header p{margin:4px 0;font-size:12px}
+main{padding:16px 14px 88px}.hero{padding:20px;border-radius:22px;background:linear-gradient(135deg,#e3f4ff,#f6fbff);margin-bottom:16px}
+.hero h2{margin:0 0 6px;font-size:25px}.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.card,.item{border:1px solid #dbe7f2;border-radius:17px;padding:15px;background:#fff;box-shadow:0 3px 12px #0000000a}
+.card{text-align:left;min-height:110px;border:1px solid #dbe7f2}.card h3{margin:0 0 5px;font-size:16px}.card p,.item p{margin:0;line-height:1.45;color:#58718a}.icon{font-size:24px;margin-bottom:8px}
+.section{font-size:24px;margin:4px 0 12px}.muted{color:#607894}.tag{display:inline-block;padding:5px 9px;border-radius:20px;background:#e4f2ff;color:#0868b5;font-size:11px;font-weight:bold}
+.form{display:grid;gap:12px}.form label{font-weight:bold}.form input,.form select,.form textarea{width:100%;padding:12px;border:1px solid #cbd9e7;border-radius:11px;margin-top:5px}
+.btn{padding:11px 14px;border:0;border-radius:11px;background:#0878d1;color:#fff;font-weight:bold}.btn.secondary{background:#e8f2fb;color:#0753a4}.btn.red{background:#dc4d63}
+.row{display:flex;justify-content:space-between;gap:10px;align-items:center}.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:12px 0}
+.stat{background:#eef7ff;padding:13px;border-radius:14px}.stat b{font-size:22px;display:block}.nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:min(960px,100%);background:#0878d1;color:#fff;display:grid;grid-template-columns:repeat(5,1fr);padding:7px 4px calc(7px + env(safe-area-inset-bottom));z-index:9}
+.nav button{background:none;border:0;color:#fff;font-size:10px}.nav strong{display:block;font-size:20px}.toast{position:fixed;bottom:78px;left:50%;transform:translateX(-50%);background:#17324d;color:#fff;padding:10px 15px;border-radius:10px;z-index:20}
+.sp{height:10px}.danger{background:#fff0f2;border-color:#ffd0d8}.ok{background:#eefaf2}.hide{display:none!important}
+@media(max-width:600px){.grid{gap:9px}.stats{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<div class="app">
+<header><div class="logo">RW<br>08</div><div><h1>RW 08 Kampung Ciutara</h1><p>Portal Layanan & Informasi Warga</p></div></header>
+<main id="main"></main>
+<nav class="nav">
+<button onclick="home()"><strong>⌂</strong>Beranda</button>
+<button onclick="page('services')"><strong>▤</strong>Layanan</button>
+<button onclick="page('complaints')"><strong>!</strong>Aduan</button>
+<button onclick="page('activities')"><strong>★</strong>Kegiatan</button>
+<button onclick="page('login')"><strong>⚙</strong>Akun</button>
+</nav>
+</div><div id="toast"></div>
+<script>
+const KEY='rw08_ciutara_final_v1';
+let db=JSON.parse(localStorage.getItem(KEY)||'null')||{
+ users:[{id:1,name:'Admin RW 08',username:'admin',password:'rw08',role:'admin'}],
+ residents:[{id:1,name:'Warga Demo',rt:'RT 19',status:'Aktif'}],
+ letters:[],complaints:[],feedback:[],dues:[],
+ announcements:[{title:'Selamat Datang',text:'Selamat datang di Portal Warga RW 08 Kampung Ciutara.',cat:'RW 08'}],
+ education:[{title:'Jaga kebersihan lingkungan',cat:'Lingkungan',text:'Buang sampah pada tempatnya dan jaga saluran air tetap bersih.'}],
+ youth:[{title:'Agenda Kepemudaan',text:'Informasi kegiatan pemuda RW 08 akan ditampilkan di sini.'}],
+ pkk:[{title:'Kegiatan PKK RW 08',text:'Informasi agenda, keluarga, kesehatan dan pemberdayaan ekonomi keluarga.'}],
+ dkm:[{title:'DKM Masjid Jami Al-Ishlah',text:'Informasi kegiatan dan pengumuman DKM Kampung Ciutara RW 08.'}],
+ programs:[{title:'Program RW 08',text:'Program kerja dan kegiatan lingkungan RW 08.'}],
+ activities:[
+ {key:'hutri',icon:'🇮🇩',title:'HUT RI',text:'Kegiatan dan dokumentasi HUT RI RW 08.'},
+ {key:'maulid',icon:'🕌',title:'Maulid Nabi',text:'Informasi dan dokumentasi Maulid Nabi.'},
+ {key:'isra',icon:'🌙',title:'Isra Mi’raj',text:'Informasi kegiatan Isra Mi’raj.'},
+ {key:'sport',icon:'⚽',title:'Olahraga',text:'Jadwal dan kegiatan olahraga warga.'}
+ ],
+ umkm:[],gallery:[],notifications:[]
+};
+let session=JSON.parse(localStorage.getItem('rw08_session')||'null');
+function save(){localStorage.setItem(KEY,JSON.stringify(db))}
+function toast(x){let t=document.getElementById('toast');t.textContent=x;t.className='toast';setTimeout(()=>t.className='',2200)}
+function tile(i,t,p,c){return `<button class="card" onclick="${c}"><div class="icon">${i}</div><h3>${t}</h3><p>${p}</p></button>`}
+function home(){
+ document.getElementById('main').innerHTML=`<div class="hero"><h2>${session?'Selamat datang, '+session.name:'Selamat Datang di RW 08'}</h2><p>Portal layanan, informasi, edukasi dan kegiatan warga Kampung Ciutara.</p></div>
+ <div class="grid">
+ ${tile('📄','Pelayanan','Pengajuan dan status surat','page("services")')}
+ ${tile('📁','Administrasi','Persyaratan dan informasi administrasi','page("admininfo")')}
+ ${tile('💬','Saran & Pengaduan','Laporkan masalah atau beri saran','page("complaints")')}
+ ${tile('👥','Data Warga','Informasi data sesuai hak akses','page("residents")')}
+ ${tile('💰','Iuran','Pencatatan iuran warga','page("dues")')}
+ ${tile('📅','Program RW','Program kerja RW 08','page("programs")')}
+ ${tile('📢','Pengumuman','Informasi resmi RW','page("announcements")')}
+ ${tile('🎓','Edukasi','Materi bermanfaat untuk warga','page("education")')}
+ ${tile('🧑‍🤝‍🧑','Kepemudaan','Agenda dan layanan pemuda','page("youth")')}
+ ${tile('👩‍👩‍👧‍👦','PKK','Kegiatan dan pemberdayaan keluarga','page("pkk")')}
+ ${tile('🕌','DKM','Masjid Jami Al-Ishlah','page("dkm")')}
+ ${tile('🎉','Kegiatan','HUT RI, Maulid, Isra Mi’raj, Olahraga','page("activities")')}
+ ${tile('🏪','UMKM Warga','Direktori usaha warga','page("umkm")')}
+ ${tile('📸','Galeri','Dokumentasi kegiatan','page("gallery")')}
+ ${tile('☎️','Kontak Penting','Kontak pengurus dan layanan penting','page("contacts")')}
+ ${tile('⭐','Feedback','Masukan untuk aplikasi/pelayanan','page("feedback")')}
+ </div>`;
+}
+function page(p){
+ let h={services:services,admininfo:admininfo,complaints:complaints,residents:residents,dues:dues,programs:programs,announcements:announcements,education:education,youth:youth,pkk:pkk,dkm:dkm,activities:activities,umkm:umkm,gallery:gallery,contacts:contacts,feedback:feedback,login:login,admin:admin,profile:profile}[p];
+ document.getElementById('main').innerHTML=h?h():'<div class="item">Halaman belum tersedia.</div>';
+}
+function login(){return `<h2 class="section">Akun</h2><div class="item"><h3>Login Google</h3><p>Integrasi Google/Firebase memerlukan konfigurasi Firebase milik RW 08. Versi proyek ini tidak memalsukan login Google.</p><div class="sp"></div><button class="btn" onclick="toast('Tambahkan konfigurasi Firebase untuk mengaktifkan Google Login.')">Lanjutkan dengan Google</button><hr><p class="muted">Untuk pengujian lokal admin:</p><p><b>admin / rw08</b></p><button class="btn secondary" onclick="demoLogin()">Masuk sebagai Admin Demo</button></div>`}
+function demoLogin(){session={id:1,name:'Admin RW 08',role:'admin'};localStorage.setItem('rw08_session',JSON.stringify(session));toast('Admin demo aktif');setTimeout(()=>page('admin'),300)}
+function admin(){if(!session||session.role!=='admin')return login();return `<h2 class="section">Dashboard Admin</h2><div class="stats"><div class="stat">Warga<b>${db.residents.length}</b></div><div class="stat">Surat<b>${db.letters.length}</b></div><div class="stat">Aduan<b>${db.complaints.length}</b></div></div><div class="grid">
+${tile('👥','Kelola Warga','Tambah data warga','page("residents")')}
+${tile('📄','Pengajuan Surat','Lihat pengajuan','page("services")')}
+${tile('💬','Pengaduan','Tindak lanjut laporan','page("complaints")')}
+${tile('📢','Pengumuman','Kelola informasi','page("announcements")')}
+${tile('🎓','Edukasi','Kelola materi','page("education")')}
+${tile('👩‍👩‍👧‍👦','PKK','Kelola konten PKK','page("pkk")')}
+${tile('🕌','DKM','Kelola konten DKM','page("dkm")')}
+${tile('🧑‍🤝‍🧑','Kepemudaan','Kelola konten pemuda','page("youth")')}
+</div><div class="sp"></div><button class="btn red" onclick="logout()">Keluar</button>`}
+function logout(){session=null;localStorage.removeItem('rw08_session');toast('Logout berhasil');setTimeout(home,300)}
+function services(){return `<h2 class="section">Pelayanan Warga</h2><button class="btn" onclick="letterForm()">+ Ajukan Surat</button><div class="sp"></div>${db.letters.map(x=>`<div class="item"><span class="tag">${x.status}</span><h3>${x.type}</h3><p>${x.name} • ${x.rt}<br>${x.purpose}</p>${session?.role==='admin'?`<button class="btn secondary" onclick="nextStatus(${x.id})">Ubah Status</button>`:''}</div>`).join('')||'<div class="item"><p>Belum ada pengajuan.</p></div>'}`}
+function letterForm(){document.getElementById('main').innerHTML=`<h2 class="section">Pengajuan Surat</h2><form class="form" onsubmit="submitLetter(event)">
+<label>Jenis Surat<select id="lt"><option>Surat Pengantar</option><option>Surat Keterangan Domisili</option><option>Surat Keterangan Usaha</option><option>Surat Keterangan Tidak Mampu</option><option>Surat Pengantar SKCK</option><option>Surat Keterangan Kelahiran</option><option>Surat Keterangan Kematian</option><option>Surat Keterangan Belum Menikah</option><option>Surat Keterangan Pindah</option><option>Lainnya</option></select></label>
+<label>Nama<input id="ln" value="${session?.name||''}" required></label><label>RT<select id="lr"><option>RT 19</option><option>RT 20</option><option>RT 21</option><option>RT 22</option></select></label><label>Keperluan<textarea id="lp" required></textarea></label><button class="btn">Kirim Pengajuan</button></form>`}
+function submitLetter(e){e.preventDefault();db.letters.push({id:Date.now(),type:lt.value,name:ln.value,rt:lr.value,purpose:lp.value,status:'Menunggu'});save();toast('Pengajuan tersimpan');page('services')}
+function nextStatus(id){let x=db.letters.find(x=>x.id===id);x.status=x.status==='Menunggu'?'Diproses':x.status==='Diproses'?'Selesai':'Selesai';save();page('services')}
+function admininfo(){return `<h2 class="section">Administrasi</h2><div class="grid">${tile('📋','Persyaratan Surat','Informasi syarat pengajuan','page("services")')}${tile('🕘','Jam Pelayanan','Atur informasi jam pelayanan','page("contacts")')}${tile('📜','Tata Tertib','Aturan lingkungan RW','page("education")')}${tile('☎️','Kontak RW/RT','Hubungi pengurus','page("contacts")')}</div>`}
+function complaints(){return `<h2 class="section">Saran & Pengaduan</h2><button class="btn" onclick="complaintForm()">+ Buat Laporan</button><div class="sp"></div>${db.complaints.map(x=>`<div class="item"><span class="tag">${x.status}</span><h3>${x.title}</h3><p>${x.text}<br>Pelapor: ${x.name}</p>${session?.role==='admin'?`<button class="btn secondary" onclick="resolve(${x.id})">Tindak Lanjut</button>`:''}</div>`).join('')||'<div class="item"><p>Belum ada laporan.</p></div>'}`}
+function complaintForm(){document.getElementById('main').innerHTML=`<h2 class="section">Buat Laporan</h2><form class="form" onsubmit="submitComplaint(event)"><label>Kategori<select id="cc"><option>Jalan</option><option>Sampah</option><option>Keamanan</option><option>Lampu</option><option>Saluran Air</option><option>Fasilitas Umum</option><option>Lainnya</option></select></label><label>Judul<input id="ct" required></label><label>Laporan<textarea id="cx" rows="5" required></textarea></label><label>Lokasi<input id="cl"></label><button class="btn">Kirim Laporan</button></form>`}
+function submitComplaint(e){e.preventDefault();db.complaints.push({id:Date.now(),cat:cc.value,title:ct.value,text:cx.value+' Lokasi: '+cl.value,name:session?.name||'Warga',status:'Menunggu'});save();toast('Laporan terkirim');page('complaints')}
+function resolve(id){db.complaints.find(x=>x.id===id).status='Selesai';save();page('complaints')}
+function residents(){return `<h2 class="section">Data Warga</h2>${session?.role==='admin'?'<button class="btn" onclick="residentForm()">+ Tambah Warga</button>':''}<div class="sp"></div>${db.residents.map(x=>`<div class="item"><div class="row"><div><h3>${x.name}</h3><p>${x.rt} • ${x.status}</p></div>${session?.role==='admin'?`<button class="btn red" onclick="delResident(${x.id})">Hapus</button>`:''}</div></div>`).join('')}`}
+function residentForm(){document.getElementById('main').innerHTML=`<h2 class="section">Tambah Warga</h2><form class="form" onsubmit="addResident(event)"><label>Nama<input id="rn" required></label><label>RT<select id="rr"><option>RT 19</option><option>RT 20</option><option>RT 21</option><option>RT 22</option></select></label><button class="btn">Simpan</button></form>`}
+function addResident(e){e.preventDefault();db.residents.push({id:Date.now(),name:rn.value,rt:rr.value,status:'Aktif'});save();page('residents')}
+function delResident(id){db.residents=db.residents.filter(x=>x.id!==id);save();page('residents')}
+function dues(){return `<h2 class="section">Iuran Warga</h2>${session?.role==='admin'?'<button class="btn" onclick="dueForm()">+ Buat Tagihan</button>':''}<div class="sp"></div>${db.dues.map(x=>`<div class="item"><span class="tag">${x.status}</span><h3>${x.month}</h3><p>${x.name} — Rp ${Number(x.amount).toLocaleString('id-ID')}</p>${x.status!=='Lunas'?`<button class="btn" onclick="payDue(${x.id})">Tandai Lunas</button>`:''}</div>`).join('')||'<div class="item"><p>Belum ada tagihan.</p></div>'}`}
+function dueForm(){document.getElementById('main').innerHTML=`<h2 class="section">Buat Tagihan</h2><form class="form" onsubmit="addDue(event)"><label>Nama<select id="dn">${db.residents.map(x=>`<option>${x.name}</option>`).join('')}</select></label><label>Bulan<input id="dm" placeholder="September 2026" required></label><label>Nominal<input id="da" type="number" required></label><button class="btn">Simpan</button></form>`}
+function addDue(e){e.preventDefault();db.dues.push({id:Date.now(),name:dn.value,month:dm.value,amount:da.value,status:'Belum Lunas'});save();page('dues')}
+function payDue(id){let x=db.dues.find(x=>x.id===id);x.status='Lunas';save();page('dues')}
+function listPage(title,arr,addLabel){return `<h2 class="section">${title}</h2>${session?.role==='admin'&&addLabel?`<button class="btn" onclick="quickAdd('${addLabel}')">+ Tambah</button><div class="sp"></div>`:''}${arr.map(x=>`<div class="item"><span class="tag">${x.cat||'Informasi'}</span><h3>${x.title}</h3><p>${x.text}</p></div>`).join('')||'<div class="item"><p>Belum ada data.</p></div>'}`}
+function announcements(){return listPage('Pengumuman',db.announcements,'pengumuman')}
+function education(){return listPage('Edukasi Warga',db.education,'edukasi')}
+function youth(){return listPage('Kepemudaan',db.youth,'kepemudaan')}
+function pkk(){return listPage('PKK RW 08',db.pkk,'pkk')}
+function dkm(){return listPage('DKM Masjid Jami Al-Ishlah',db.dkm,'dkm')}
+function programs(){return listPage('Program RW 08',db.programs,'program')}
+function quickAdd(type){let title=prompt('Judul');if(!title)return;let text=prompt('Isi informasi');if(text===null)return;let map={pengumuman:db.announcements,edukasi:db.education,kepemudaan:db.youth,pkk:db.pkk,dkm:db.dkm,program:db.programs};map[type].push({title,text,cat:'RW 08'});save();page(type==='pengumuman'?'announcements':type==='edukasi'?'education':type==='kepemudaan'?'youth':type==='pkk'?'pkk':type==='dkm'?'dkm':'programs')}
+function activities(){return `<h2 class="section">Kegiatan RW 08</h2><div class="grid">${db.activities.map(x=>tile(x.icon,x.title,x.text,`activityDetail('${x.key}')`)).join('')}</div>`}
+function activityDetail(key){let x=db.activities.find(a=>a.key===key);document.getElementById('main').innerHTML=`<button class="btn secondary" onclick="page('activities')">← Kembali</button><div class="sp"></div><div class="hero"><h2>${x.icon} ${x.title}</h2><p>${x.text}</p></div><div class="item"><h3>Informasi Kegiatan</h3><p>Jadwal, lokasi, peserta, pengumuman dan dokumentasi kegiatan dapat dikelola oleh Admin RW 08.</p></div>`}
+function umkm(){return `<h2 class="section">UMKM Warga</h2>${session?.role==='admin'?'<button class="btn" onclick="umkmForm()">+ Tambah UMKM</button><div class="sp"></div>':''}${db.umkm.map(x=>`<div class="item"><h3>${x.name}</h3><p>${x.product}<br>Kontak: ${x.contact}</p></div>`).join('')||'<div class="item"><p>Belum ada UMKM yang ditambahkan.</p></div>'}`}
+function umkmForm(){let n=prompt('Nama usaha');if(!n)return;let p=prompt('Produk/jasa');let c=prompt('Kontak');db.umkm.push({name:n,product:p||'',contact:c||''});save();page('umkm')}
+function gallery(){return `<h2 class="section">Galeri</h2><div class="grid">${db.gallery.map(x=>`<div class="item"><h3>${x.title}</h3><p>${x.text}</p></div>`).join('')||'<div class="item"><p>Dokumentasi kegiatan akan ditampilkan di sini.</p></div>'}</div>`}
+function contacts(){return `<h2 class="section">Kontak Penting</h2><div class="grid">${tile('🏠','Ketua RW 08','Kontak RW','toast("Nomor kontak belum diisi")')}${tile('🏘️','RT 19/20/21/22','Kontak RT','toast("Nomor kontak belum diisi")')}${tile('🕌','DKM','Masjid Jami Al-Ishlah','page("dkm")')}${tile('🚑','Darurat','Nomor layanan darurat','toast("Tambahkan nomor darurat resmi")')}</div>`}
+function feedback(){return `<h2 class="section">Feedback</h2><form class="form" onsubmit="sendFeedback(event)"><label>Rating<select id="fr"><option>5</option><option>4</option><option>3</option><option>2</option><option>1</option></select></label><label>Masukan<textarea id="fx" required></textarea></label><button class="btn">Kirim Feedback</button></form><div class="sp"></div>${session?.role==='admin'?db.feedback.map(x=>`<div class="item"><b>${x.rating}/5</b><p>${x.text}</p></div>`).join(''):''}`}
+function sendFeedback(e){e.preventDefault();db.feedback.push({rating:fr.value,text:fx.value,name:session?.name||'Warga'});save();toast('Feedback tersimpan');page('feedback')}
+function profile(){return `<h2 class="section">Profil</h2><div class="item"><h3>${session?.name||'Belum login'}</h3><p>RW 08 Kampung Ciutara</p></div>`}
+home();
+</script>
+</body></html>

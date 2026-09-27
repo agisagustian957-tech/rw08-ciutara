@@ -1,0 +1,24 @@
+RW 08 KAMPUNG CIUTARA — PROJECT ANDROID v2
+
+FITUR PROTOTIPE:
+- Login Warga/Admin dengan role
+- Database lokal (localStorage) untuk demo
+- Dashboard Admin
+- Kelola Data Warga
+- Iuran: buat tagihan, status lunas/belum
+- Surat: pengajuan dan status
+- Laporan/Aduan: kirim dan admin tandai selesai
+- Pengumuman
+- Kegiatan RW
+- Informasi/Kontak
+
+AKUN DEMO:
+Admin: admin / rw08
+Warga: warga / warga08
+
+PENTING:
+Ini belum memakai server/database online. Data demo tersimpan lokal pada perangkat.
+Untuk produksi, tahap berikutnya adalah backend/database online, autentikasi aman,
+backup, upload dokumen, notifikasi, dan validasi hak akses.
+BUILD:
+Buka folder project di Android Studio → Sync → Build > Build APK(s).

@@ -1,0 +1,31 @@
+CARA BUILD APK DARI HP (TANPA ANDROID STUDIO)
+
+1. Buat akun/login GitHub di https://github.com
+2. Buat repository baru, misalnya: rw08-kampung-ciutara
+3. Extract ZIP project ini.
+4. Di GitHub pilih Add file > Upload files.
+5. Upload SELURUH isi folder project, termasuk folder:
+   .github/workflows/build-apk.yml
+   app/
+   build.gradle
+   settings.gradle
+6. Commit changes ke branch main.
+7. Buka tab Actions pada repository.
+8. Pilih workflow "Build RW08 APK".
+9. Tekan "Run workflow" jika belum berjalan otomatis.
+10. Tunggu sampai job selesai dengan tanda centang hijau.
+11. Buka hasil workflow tersebut.
+12. Pada bagian Artifacts, download "RW08-Ciutara-APK".
+13. Extract ZIP hasil download.
+14. Di dalamnya ada file:
+       RW08-Ciutara.apk
+15. Tap APK tersebut di HP lalu Install.
+
+AKUN DEMO APLIKASI:
+Admin: admin / rw08
+Warga: warga / warga08
+
+CATATAN:
+- Build ini menghasilkan debug APK untuk pengujian/instalasi.
+- Database aplikasi saat ini masih lokal pada perangkat.
+- Untuk Play Store nanti buat release/AAB dan signing key.
