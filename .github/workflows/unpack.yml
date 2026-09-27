@@ -15,10 +15,10 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Extract project ZIP
-        run: |
-          unzip -o RW08_Ciutara_Final_Project.zip -d .
-rm -rf __MACOSX
-rm -f .github/workflows/build-apk.yml
+            run: |
+        unzip -o RW08_Ciutara_Final_Project.zip -d .
+        rm -rf __MACOSX
+        rm -f .github/workflows/build-apk.yml
           
       - name: Commit extracted project
         run: |
